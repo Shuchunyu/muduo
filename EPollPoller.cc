@@ -120,5 +120,22 @@ void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels)
 
 void EPollPoller::update(int operation, Channel* channel)
 {
+    epoll_event event;
+    bzero(&event, sizeof event);
+    event.events = channel -> events();
+    event.data.ptr = channel;
+    int fd = channel -> fd();
 
+    if(::epoll_ctl(epollfd_, operation, fd, &event) < 0)
+    {
+        if(operation == EPOLL_CTL_DEL)
+        {
+            LOG_ERROR("epoll_ctl_del error:%d\n", errno);
+        }
+        else
+        {
+            LOG_FATAL("epoll_ctl_del error:%d\n", errno);
+        }
+
+    }
 }
