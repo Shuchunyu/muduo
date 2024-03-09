@@ -6,6 +6,12 @@
 #include<unistd.h>
 #include<strings.h>
 
+//Channel为添加到poller中
+const int kNew = -1;
+//Channel已添加到poller中
+const int kAdded = 1;
+//Channel从poller中删除
+const int kDeleted = 2;
 
 EPollPoller::EPollPoller(EventLoop* loop)
     : Poller(loop)
@@ -59,17 +65,57 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 
 void EPollPoller::updateChannel(Channel* channel)
 {
+    const int index = channel->index();
+    LOG_INFO("func=%s => fd=%d events=%d index=%d \n", __FUNCTION__, channel -> fd(), channel -> events(), index);
 
+    if(index == kNew || index == kDeleted)
+    {
+        if(index == kNew)
+        {
+            int fd = channel->fd();
+            channels_[fd] = channel;
+        }
+        channel -> set_index(kAdded);
+        update(EPOLL_CTL_ADD, channel);
+    }
+    else
+    {
+        int fd = channel -> fd();
+        if(channel -> isNoneEvent())
+        {
+            update(EPOLL_CTL_DEL, channel);
+            channel -> set_index(kDeleted);
+        }
+        else
+        {
+            update(EPOLL_CTL_MOD, channel);
+        }
+    }
 }
 
 void EPollPoller::removeChannel(Channel* channel)
 {
+    int fd = channel -> fd();
+    channels_.erase(fd);
 
+    LOG_INFO("func=%s => fd=%d \n", __FUNCTION__, fd);
+
+    int index = channel -> index();
+    if(index == kAdded)
+    {
+        update(EPOLL_CTL_DEL, channel);
+    }
+    channel -> set_index(kNew);
 }
 
 void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels) const
 {
-    
+    for(int i = 0; i < numEvents; ++i)
+    {
+        Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
+        channel -> set_revents(events_[i].events);
+        activeChannels->push_back(channel);
+    }
 }
 
 void EPollPoller::update(int operation, Channel* channel)
