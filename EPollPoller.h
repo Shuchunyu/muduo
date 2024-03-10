@@ -28,7 +28,9 @@ public:
 private:
     static const int KInitEventListSize = 16;
 
+    //返回发生发生的事件
     void fillActiveChannels(int numEvents, ChannelList* activeChannels) const;
+    //添加 删除Channel
     void update(int operation, Channel* channel);
 
     using EventList = std::vector<epoll_event>;
