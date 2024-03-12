@@ -7,6 +7,9 @@
 
 __thread EventLoop* t_loopInThisThread = nullptr;
 
+//默认IO复用接口的超时时间
+const int kPollTimeMs = 10000;
+
 //创建eventfd，用来notify唤醒subReator处理新来的channel
 int createEventfd()
 {
