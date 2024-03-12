@@ -64,12 +64,36 @@ void EventLoop::handleRead()
 
 void EventLoop::loop()
 {
+    looping_ = true;
+    quit_ = false;
+    LOG_INFO("EventLoop %p start looping\n", this);
 
+    while(!quit_)
+    {
+        activeChannels_.clear();
+        pollReturnTime_ = poller_ -> poll(kPollTimeMs, &activeChannels_);
+
+        for(Channel* channel: activeChannels_)
+        {
+            //Poller监听哪些channel发生事件了，然后上报给Eventloop，通知channel处理事件
+            channel -> handleEvent(pollReturnTime_);
+        }
+        
+        //事件循环需要处理的回调操作
+        //mainloop 事先注册一个回调cb，唤醒subloop后，执行下面的方法，执行之前mainloop注册的回调
+        doPendingFunctors();
+    }
+
+    LOG_INFO("EventLoop %p stop looping\n", this);
 }
 
 void EventLoop::quit()
 {
-
+    quit_ = true;
+    if(!isInLoopThread()) //如果在其他线程中，调用了quit, 需要唤醒loop所在那个线程
+    {
+        wakeup();
+    }
 }
 
 void EventLoop::runInLoop(Functor cb)
