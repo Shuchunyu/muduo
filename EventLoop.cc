@@ -1,5 +1,57 @@
 #include "EventLoop.h"
 #include "Poller.h"
+#include "Channel.h"
+#include "Logger.h"
+
+#include<sys/eventfd.h>
+
+__thread EventLoop* t_loopInThisThread = nullptr;
+
+int createEventfd()
+{
+    int evfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if(evfd < 0)
+    {
+        LOG_FATAL("eventfd error: %d\n", errno);
+    }
+    return evfd;
+}
+
+EventLoop::EventLoop()
+    : looping_(false)
+    , quit_(false)
+    , callingPendingFunctors_(false)
+    , threadId_(CurrentThread::tid())
+    , poller_(Poller::newDefaultPoller(this))
+    , wakeupFd_(createEventfd())
+    , wakeupChannel_(new Channel(this, wakeupFd_))
+    //, currentActiveChannel_(nullptr)
+{
+    LOG_DEBUG("EventLoop created %p in thread %d\n", this, threadId_);
+    if(t_loopInThisThread)
+    {
+        LOG_FATAL("Another EventLoop %p exists in this thread %d \n", t_loopInThisThread, threadId_);
+    }
+    else
+    {
+        t_loopInThisThread = this;
+    }
+
+    //设置wakerup的事件类型以及发生事件后的回调操作
+    wakeupChannel_ -> setReadCallback(std::bind(&EventLoop::handleRead, this));
+    //每一个eventloop都将监听wakeupChannel的EPOLLIN读事件了
+    wakeupChannel_ -> enableReading();
+}
+
+EventLoop::~EventLoop()
+{
+    wakeupChannel_-> disableAll();
+    wakeupChannel_ -> remove();
+    ::close(wakeupFd_);
+    t_loopInThisThread = nullptr;
+}
+
+
 
 void EventLoop::updateChannel(Channel* channel)
 {
