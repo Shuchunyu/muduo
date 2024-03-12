@@ -7,6 +7,7 @@
 
 __thread EventLoop* t_loopInThisThread = nullptr;
 
+//创建eventfd，用来notify唤醒subReator处理新来的channel
 int createEventfd()
 {
     int evfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
@@ -51,6 +52,47 @@ EventLoop::~EventLoop()
     t_loopInThisThread = nullptr;
 }
 
+void EventLoop::handleRead()
+{
+    uint64_t one = 1;
+    ssize_t n = read(wakeupFd_, &one, sizeof one);
+    if(n != sizeof one)
+    {
+        LOG_ERROR("EventLoop::handleRead() read %ld bytes instead of 8", n);
+    }
+}
+
+void EventLoop::loop()
+{
+
+}
+
+void EventLoop::quit()
+{
+
+}
+
+void EventLoop::runInLoop(Functor cb)
+{
+    
+}
+
+void EventLoop::queueInLoop(Functor cb)
+{
+    
+
+}
+
+//唤醒loop。想wakeupfd写数据，使poller返回
+void EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    ssize_t n = write(wakeupFd_, &one, sizeof one);
+    if(n != sizeof one)
+    {
+        LOG_ERROR("EventLoop::wakeup() writes %lu bytes instead of 8\n", n);
+    }
+}
 
 
 void EventLoop::updateChannel(Channel* channel)
@@ -67,3 +109,8 @@ bool EventLoop::hasChannel(Channel* channel)
 {
     return poller_->hasChannel(channel);
 }
+
+void EventLoop::doPendingFunctors()
+{
+    
+} 
