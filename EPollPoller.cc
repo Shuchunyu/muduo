@@ -6,7 +6,7 @@
 #include<unistd.h>
 #include<strings.h>
 
-//Channel为添加到poller中
+//Channel未添加到poller中
 const int kNew = -1;
 //Channel已添加到poller中
 const int kAdded = 1;
@@ -136,6 +136,5 @@ void EPollPoller::update(int operation, Channel* channel)
         {
             LOG_FATAL("epoll_ctl_del error:%d\n", errno);
         }
-
     }
 }
