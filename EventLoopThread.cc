@@ -26,7 +26,7 @@ EventLoopThread::~EventLoopThread()
 
 EventLoop* EventLoopThread::stratLoop()
 {
-    thread_.start();
+    thread_.start();    // 启动子线程运行绑定的函数
 
     EventLoop *loop = nullptr;
     {
