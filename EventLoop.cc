@@ -55,6 +55,7 @@ EventLoop::~EventLoop()
     t_loopInThisThread = nullptr;
 }
 
+// 其他线程唤醒此loop后，随便执行一个操作，主要作用是唤醒loop
 void EventLoop::handleRead()
 {
     uint64_t one = 1;
