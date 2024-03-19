@@ -101,13 +101,29 @@ void EventLoop::quit()
 
 void EventLoop::runInLoop(Functor cb)
 {
-    
+    if(isInLoopThread())    //在loop的线程中，
+    {
+        cb();
+    }
+    else
+    {
+        queueInLoop(cb);
+    }
 }
 
 void EventLoop::queueInLoop(Functor cb)
 {
-    
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        pendingFunctors_.emplace_back(cb);              //加入新的需要处理的回调
+    }
 
+    //唤醒相应的，需要执行上面回调操作的loop线程
+    if(!isInLoopThread() || callingPendingFunctors_)    //如果正在执行doPendingFunctors，说明上一次的回调还没有处理完，需要再次唤醒，执行新的回调
+    {
+        wakeup();
+    }
+    
 }
 
 //唤醒loop。想wakeupfd写数据，使poller返回
@@ -139,5 +155,18 @@ bool EventLoop::hasChannel(Channel* channel)
 
 void EventLoop::doPendingFunctors()
 {
-    
+    std::vector<Functor> functors;
+    callingPendingFunctors_ = true;
+
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        functors.swap(pendingFunctors_);
+    }
+
+    for(const Functor& functor: functors)
+    {
+        functor();
+    }
+
+    callingPendingFunctors_ = false;
 } 
