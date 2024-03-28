@@ -72,7 +72,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr)
     LOG_INFO("TcpServer::newConnection [%s] - new connection [%s] from %s \n",
         name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
 
-    //通过socket获取本机的ip地址和端口
+    //通过getsockname获取本机的ip地址和端口
     sockaddr_in local;
     ::bzero(&local, sizeof local);
     socklen_t addrlen = sizeof local;
@@ -90,7 +90,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr)
                         peerAddr));
     
     connections_[connName] = conn;
-    //用户传给TcpServer -> TcpConnection -> Channel -> Poller -> Channel回调
+    //用户自定义业务函数 -> TcpServer -> TcpConnection -> Channel -> Poller -> Channel回调
     conn -> setConnectionCallback(connectionCallback_);
     conn -> setMessageCallback(messageCallback_);
     conn -> setWriteCompleteCallback(writeCompleteCallback_);

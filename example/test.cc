@@ -27,19 +27,19 @@ private:
     {
         if(conn->connected())
         {
-            LOG_INFO("connection UP : %s", conn->peerAddress().toIpPort().c_str());
+            LOG_INFO("connection established : %s", conn->peerAddress().toIpPort().c_str());
         }
         else
         {
-            LOG_INFO("connection DOWN : %s", conn->peerAddress().toIpPort().c_str());
+            LOG_INFO("connection destroyed : %s", conn->peerAddress().toIpPort().c_str());
         }
     }
 
     void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp time)
     {
-        LOG_INFO("onMessage~~~~~~~~~");
+        //LOG_INFO("onMessage~~~~~~~~~");
         std::string msg = buf -> retrieveAllAsString();
-        std::cout << " ------ " << msg << " ------" << std::endl;
+        //std::cout << " ------ " << msg << " ------" << std::endl;
         conn->send(msg);
         conn->shutdown();
     }

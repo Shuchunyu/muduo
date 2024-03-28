@@ -25,12 +25,12 @@ public:
     void listen();
     
 private:
-    void handleRead();
+    void handleRead();                              // acceptor可读时的回调，调用才方法说明有新连接进来了
 
-    EventLoop *loop_;
+    EventLoop *loop_;                               // acceptor所在的loop就是主线程loop
     Socket acceptSocket_;
     Channel acceptChannel_;
-    NewConnectionCallback newConnectionCallback_;
+    NewConnectionCallback newConnectionCallback_;   // 有TcpServer注册
     bool listenning_;
 
 };

@@ -112,11 +112,12 @@ void EventLoop::runInLoop(Functor cb)
     }
 }
 
+// 此函数有可能在mainloop中执行，所以对pendingFunctors进行操作时需要加锁
 void EventLoop::queueInLoop(Functor cb)
 {
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        pendingFunctors_.emplace_back(cb);              //加入新的需要处理的回调
+        pendingFunctors_.emplace_back(std::move(cb));              //加入新的需要处理的回调
     }
 
     //唤醒相应的，需要执行上面回调操作的loop线程

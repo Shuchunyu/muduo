@@ -22,7 +22,8 @@ Thread::~Thread()
         thread_ -> detach();
     }
 }
-    
+
+// 真正启动线程
 void Thread::start()
 {
     sem_t sem;

@@ -19,7 +19,7 @@ Channel::~Channel()
 
 }
 
-//什么时候调用此方法？？
+//什么时候调用此方法？？        新建一个tcp连接时
 void Channel::tie(const std::shared_ptr<void>& obj)
 {
     tie_ = obj;
@@ -42,7 +42,7 @@ void Channel::handleEvent(Timestamp receiveTime)
 {
     if(tied_)
     {
-        std::shared_ptr<void> guard = tie_.lock();
+        std::shared_ptr<void> guard = tie_.lock();  // 判断这个tcpconnection是否存在
         if(guard)
         {
             handleEventWithGuard(receiveTime);
