@@ -38,7 +38,8 @@ public:
     void setWriteCompleteback(const WriteCompleteCallback& cb) { writeCompleteCallback_ = cb;}
 
     void start();
-
+    const std::string& ipPort() const { return ipPort_; }
+    const std::string& name() const { return name_; }
 
 private:
     void newConnection(int sockfd, const InetAddress &peerAddr);

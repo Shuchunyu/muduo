@@ -58,7 +58,18 @@ public:
         body_ = body;
     }
 
-    void appendToBuffer(Buffer* output) const;
+    void setCloseConnection(bool on)
+    {
+        closeConnection_ = on;
+    }
+
+    bool closeConnection() const
+    {
+        return closeConnection_;
+    }
+
+    void appendToBuffer(Buffer *output) const;
+
 private:
     std::map<std::string, std::string> headers_;
     HttpStatusCode statusCode_;
