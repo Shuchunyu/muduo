@@ -3,6 +3,7 @@
 #include<vector>
 #include<string>
 #include<algorithm>
+#include<cstring>
 
 /// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
 ///
@@ -95,6 +96,15 @@ public:
         writerIndex_ += len;
     }
     
+    void append(const std::string& str)
+    {
+        append(str.c_str(), str.size());
+    }
+
+    void append(const char* data)
+    {
+        append(data, strlen(data));
+    }
 
     char* beginWrite()
     {
