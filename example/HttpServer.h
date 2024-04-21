@@ -32,9 +32,7 @@ public:
 
 private:
     void onConnection(const TcpConnectionPtr &conn);
-    void onMessage(const TcpConnectionPtr &conn,
-                   Buffer *buf,
-                   Timestamp receiveTime);
+    void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp receiveTime);
     void onRequest(const TcpConnectionPtr &, const HttpRequest &);
 
     TcpServer server_;

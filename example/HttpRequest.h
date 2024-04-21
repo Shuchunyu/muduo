@@ -6,7 +6,7 @@ Host: www.example.com
 */
 
 #include <string>
-#include <Timestamp.h>
+#include <mymuduo/Timestamp.h>
 #include <map>
 
 class HttpRequest
@@ -77,6 +77,13 @@ public:
     void addHeader(const char *start, const char *colon, const char *end);
 
     std::string getHeader(const std::string &field) const;
+
+    void swap(HttpRequest &that);
+
+    const std::map<std::string, std::string> &headers() const
+    {
+        return headers_;
+    }
 
 private:
     Method method_;

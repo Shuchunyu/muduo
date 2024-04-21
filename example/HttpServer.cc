@@ -1,6 +1,7 @@
 #include "HttpServer.h"
-
+#include "HttpContext.h"
 #include "HttpResponse.h"
+#include <mymuduo/TcpConnection.h>
 #include <functional>
 
 void defaultHttpCallback(const HttpRequest &, HttpResponse *resp)
@@ -13,16 +14,58 @@ void defaultHttpCallback(const HttpRequest &, HttpResponse *resp)
 HttpServer::HttpServer(EventLoop *loop,
                        const InetAddress &listenAddr,
                        const std::string &name,
-                       TcpServer::Option option = TcpServer::kNoReusePort)
+                       TcpServer::Option option)
     : server_(loop, listenAddr, name, option),
       httpCallback_(defaultHttpCallback)
 {
     server_.setConnectionCallback(std::bind(&HttpServer::onConnection, this, std::placeholders::_1));
-    server_.setMessageCallback(std::bind(&HttpServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    server_.setMessageCallback(std::bind(&HttpServer::onMessage, this,
+                                    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 void HttpServer::start()
 {
     std::cout << "HttpServer[" << server_.name() << "] starts listening on " << server_.ipPort();
     server_.start();
+}
+
+void HttpServer::onConnection(const TcpConnectionPtr &conn)
+{
+    if (conn->connected())
+    {
+        conn->setContext(HttpContext());
+    }
+}
+void HttpServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp receiveTime)
+{
+    HttpContext *context = std::any_cast<HttpContext>(conn->getMutableContext());
+
+    if (!context->parseRequest(buf, receiveTime))
+    {
+        conn->send("HTTP/1.1 400 Bad Request\r\n\r\n");
+        conn->shutdown();
+    }
+
+    // 解析完成
+    if (context->gotAll())
+    {
+        onRequest(conn, context->request());
+        context->reset(); // 解析完毕，重置context
+    }
+}
+
+void HttpServer::onRequest(const TcpConnectionPtr & conn, const HttpRequest & req)
+{
+    const std::string &connection = req.getHeader("Connection");
+    bool close = connection == "close" ||
+                 (req.getVersion() == HttpRequest::kHttp10 && connection != "Keep-Alive");
+    HttpResponse response(close);
+    httpCallback_(req, &response);
+    Buffer buf;
+    response.appendToBuffer(&buf);
+    conn->send(&buf);
+    if (response.closeConnection())
+    {
+        conn->shutdown();
+    }
 }

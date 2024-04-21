@@ -4,6 +4,8 @@
 #include<sys/uio.h>
 #include<unistd.h>
 
+const char Buffer::kCRLF[] = "\r\n";
+
 //从fd上读取数据
 ssize_t Buffer::readFd(int fd, int* savedErrno)
 {

@@ -1,20 +1,20 @@
 #pragma once
 
-#include<vector>
-#include<string>
-#include<algorithm>
-#include<cstring>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cstring>
 
 /// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
 ///
-/// 
+///
 /// +-------------------+------------------+------------------+
 /// | prependable bytes |  readable bytes  |  writable bytes  |
 /// |                   |     (CONTENT)    |                  |
 /// +-------------------+------------------+------------------+
 /// |                   |                  |                  |
 /// 0      <=      readerIndex   <=   writerIndex    <=     size
-/// 
+///
 
 class Buffer
 {
@@ -23,9 +23,7 @@ public:
     static const size_t kInitialSize = 1024;
 
     explicit Buffer(size_t initialSize = kInitialSize)
-        : buffer_(kCheapPrepend + initialSize)
-        , readerIndex_(kCheapPrepend)
-        , writerIndex_(kCheapPrepend)
+        : buffer_(kCheapPrepend + initialSize), readerIndex_(kCheapPrepend), writerIndex_(kCheapPrepend)
     {
     }
 
@@ -44,19 +42,19 @@ public:
         return readerIndex_;
     }
 
-    //返回可读数据的起始地址
-    const char* peek() const
+    // 返回可读数据的起始地址
+    const char *peek() const
     {
         return begin() + readerIndex_;
     }
 
     void retrieve(size_t len)
     {
-        if(len < readableBytes())
+        if (len < readableBytes())
         {
             readerIndex_ += len;
         }
-        else    //len == readableBytes
+        else // len == readableBytes
         {
             retrieveAll();
         }
@@ -76,64 +74,80 @@ public:
     std::string retrieveAsString(size_t len)
     {
         std::string result(peek(), len);
-        retrieve(len);      //读出数据后，移动读指针
+        retrieve(len); // 读出数据后，移动读指针
         return result;
     }
 
     void ensureWriteableBytes(size_t len)
     {
-        if(writableBytes() < len)
+        if (writableBytes() < len)
         {
-            makeSpace(len); //扩容
+            makeSpace(len); // 扩容
         }
     }
 
-    //把data， data + len区间内的数据添加到缓冲区中
-    void append(const char* data, size_t len)
+    // 把data， data + len区间内的数据添加到缓冲区中
+    void append(const char *data, size_t len)
     {
         ensureWriteableBytes(len);
         std::copy(data, data + len, beginWrite());
         writerIndex_ += len;
     }
-    
-    void append(const std::string& str)
+
+    void append(const std::string &str)
     {
         append(str.c_str(), str.size());
     }
 
-    void append(const char* data)
+    void append(const char *data)
     {
         append(data, strlen(data));
     }
 
-    char* beginWrite()
+    char *beginWrite()
     {
         return begin() + writerIndex_;
     }
 
-    const char* beginWrite() const
+    const char *beginWrite() const
     {
         return begin() + writerIndex_;
     }
 
+    const char *findCRLF() const
+    {
+        const char *crlf = std::search(peek(), beginWrite(), kCRLF, kCRLF + 2);
+        return crlf == beginWrite() ? NULL : crlf;
+    }
 
-    ssize_t readFd(int fd, int* savedErrno);
-    ssize_t writeFd(int fd, int* savedErrno);
+    const char *findCRLF(const char *start) const
+    {
+        const char *crlf = std::search(start, beginWrite(), kCRLF, kCRLF + 2);
+        return crlf == beginWrite() ? NULL : crlf;
+    }
+
+    void retrieveUntil(const char *end)
+    {
+        retrieve(end - peek());
+    }
+
+    ssize_t readFd(int fd, int *savedErrno);
+    ssize_t writeFd(int fd, int *savedErrno);
+
 private:
-
-    char* begin()
+    char *begin()
     {
         return &*buffer_.begin();
     }
 
-    const char* begin() const
+    const char *begin() const
     {
         return &*buffer_.begin();
     }
 
     void makeSpace(size_t len)
     {
-        if(writableBytes() + prependableBytes() < len + kCheapPrepend)
+        if (writableBytes() + prependableBytes() < len + kCheapPrepend)
         {
             buffer_.resize(writerIndex_ + len);
         }
@@ -151,4 +165,6 @@ private:
     std::vector<char> buffer_;
     size_t readerIndex_;
     size_t writerIndex_;
+
+    static const char kCRLF[];
 };

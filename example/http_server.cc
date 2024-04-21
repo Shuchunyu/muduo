@@ -49,6 +49,7 @@ private:
 };
 
 
+#if 0
 int main()
 {
     //std::cout << "回声服务器，启动！！！" << std::endl;
@@ -60,3 +61,4 @@ int main()
 
     return 0;
 }
+#endif

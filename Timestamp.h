@@ -10,20 +10,24 @@ public:
     explicit Timestamp(int64_t microSecondSinceEpoch); // explicit防止隐式转换 必须明确写出构造函数
     static Timestamp now();
     std::string toString() const;
+    void swap(Timestamp &that)
+    {
+        std::swap(microSecondSinceEpoch_, that.microSecondSinceEpoch_);
+    }
     int64_t microSecondsSinceEpoch() const { return microSecondSinceEpoch_; }
     // 1秒=1000*1000微妙
     static const int kMicroSecondsPerSecond = 1000 * 1000;
-    
+
 private:
     int64_t microSecondSinceEpoch_;
 };
 
-inline bool operator<(const Timestamp &lhs, const Timestamp& rhs)
+inline bool operator<(const Timestamp &lhs, const Timestamp &rhs)
 {
     return lhs.microSecondsSinceEpoch() < rhs.microSecondsSinceEpoch();
 }
 
-inline bool operator==(const Timestamp& lhs, const Timestamp& rhs)
+inline bool operator==(const Timestamp &lhs, const Timestamp &rhs)
 {
     return lhs.microSecondsSinceEpoch() == rhs.microSecondsSinceEpoch();
 }

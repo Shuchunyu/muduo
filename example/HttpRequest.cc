@@ -1,4 +1,4 @@
-#include <HttpRequest.h>
+#include "HttpRequest.h"
 
 bool HttpRequest::setMethod(const char *start, const char *end)
 {
@@ -81,4 +81,14 @@ std::string HttpRequest::getHeader(const std::string &field) const
         result = it->second;
     }
     return result;
+}
+
+void HttpRequest::swap(HttpRequest &that)
+{
+    std::swap(method_, that.method_);
+    std::swap(version_, that.version_);
+    path_.swap(that.path_);
+    query_.swap(that.query_);
+    receiveTime_.swap(that.receiveTime_);
+    headers_.swap(that.headers_);
 }
