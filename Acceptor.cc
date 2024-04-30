@@ -29,6 +29,8 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reusepor
     //新用户连接时，执行此回调
     acceptChannel_.setReadCallback(
         std::bind(&Acceptor::handleRead, this));
+    
+    std::cout << "Acceptor fd : " << acceptSocket_.fd() << std::endl;
 }
 
 Acceptor::~Acceptor()

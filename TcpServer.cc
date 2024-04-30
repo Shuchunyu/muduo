@@ -1,6 +1,7 @@
 #include "TcpServer.h"
 #include "Logger.h"
 #include "TcpConnection.h"
+#include"CurrentThread.h"
 
 #include<functional>
 #include<string.h>
@@ -100,18 +101,20 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr)
     ioloop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
 }
 
+// 这个函数会在TcpConnection所在线程调用，也就是subLoop
 void TcpServer::removeConnection(const TcpConnectionPtr& conn)
 {
-    LOG_INFO("In %p TcpServer::removeConnection", loop_);
+    LOG_INFO("In %d TcpServer::removeConnection", CurrentThread::tid());
     loop_->runInLoop(
         std::bind(&TcpServer::removeConnectionInLoop, this, conn));
 }
 
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr &conn)
 {
-   LOG_INFO("TcpServer::removeConnectionInLoop [%s] - connection %s\n"
-        ,name_.c_str(), conn->name().c_str());
+//    LOG_INFO("TcpServer::removeConnectionInLoop [%s] - connection %s\n"
+//         ,name_.c_str(), conn->name().c_str());
 
+    LOG_INFO("In %d TcpServer::removeConnectionInLoop", CurrentThread::tid());
     connections_.erase(conn -> name());
     EventLoop *ioloop = conn -> getLoop();
     ioloop->queueInLoop(std::bind(&TcpConnection::connectDestoryed, conn));

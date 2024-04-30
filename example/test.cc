@@ -5,10 +5,33 @@
 
 #include <iostream>
 #include <map>
+#include <fstream>
 
 
 extern char favicon[555];
 bool benchmark = false;
+
+std::string get(std::string path)
+{
+    std::ifstream htmlFile(path.c_str()); // 替换为实际的 HTML 文件路径
+    std::string htmlContent;
+    std::string line;
+
+    if (htmlFile.is_open()) {
+        while (std::getline(htmlFile, line)) {
+            htmlContent += line + "\n"; // 逐行读取并追加到 htmlContent 中
+        }
+        htmlFile.close();
+    } else {
+        std::cerr << "Unable to open file" << std::endl;
+        return "";
+    }
+
+    std::cout << "HTML Content:" << std::endl;
+    std::cout << htmlContent << std::endl;
+
+    return htmlContent;
+}
 
 void onRequest(const HttpRequest& req, HttpResponse* resp)
 {
@@ -28,10 +51,9 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
     resp->setStatusMessage("OK");
     resp->setContentType("text/html");
     resp->addHeader("Server", "Muduo");
-    std::string now = Timestamp::now().toString();
-    resp->setBody("<html><head><title>This is title</title></head>"
-        "<body><h1>Hello</h1>Now is " + now +
-        "</body></html>");
+    //std::string now = Timestamp::now().toString();
+    std::string body = get("/home/ubuntu/my_github/mymuduo/example/resource/welcome.html");
+    resp->setBody(body);
   }
   else if (req.path() == "/favicon.ico")
   {
@@ -58,13 +80,16 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
 
 int main(int argc, char* argv[])
 {
-  int numThreads = 0;
+  int numThreads = 2;
   EventLoop loop;
-  HttpServer server(&loop, InetAddress(9999), "dummy");
+  std::string ip = "0.0.0.0";
+  HttpServer server(&loop, InetAddress(8888, ip), "dummy");
   server.setHttpCallback(onRequest);
   server.setThreadNum(numThreads);
   server.start();
   loop.loop();
+  
+  return 0;
 }
 
 char favicon[555] = {

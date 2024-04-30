@@ -8,7 +8,8 @@
 __thread EventLoop* t_loopInThisThread = nullptr;
 
 //默认IO复用接口的超时时间
-const int kPollTimeMs = 10000;
+const int kPollTimeMs = -1;
+
 
 //创建eventfd，用来notify唤醒subReator处理新来的channel
 int createEventfd()
@@ -45,6 +46,8 @@ EventLoop::EventLoop()
     wakeupChannel_ -> setReadCallback(std::bind(&EventLoop::handleRead, this));
     //每一个eventloop都将监听wakeupChannel的EPOLLIN读事件了
     wakeupChannel_ -> enableReading();
+
+    std::cout << "EventLoop::wakeupfd : " << wakeupChannel_->fd() << std::endl;
 }
 
 EventLoop::~EventLoop()

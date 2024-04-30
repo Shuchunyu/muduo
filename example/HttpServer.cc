@@ -25,7 +25,7 @@ HttpServer::HttpServer(EventLoop *loop,
 
 void HttpServer::start()
 {
-    std::cout << "HttpServer[" << server_.name() << "] starts listening on " << server_.ipPort();
+    std::cout << "HttpServer[" << server_.name() << "] starts listening on " << server_.ipPort() << std::endl;
     server_.start();
 }
 

@@ -1,6 +1,8 @@
 #include "EventLoopThreadPool.h"
 #include "EventLoopThread.h"
 
+#include <iostream>
+
 EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseloop, const std::string &nameArg)
     :baseloop_(baseloop)
     ,name_(nameArg)
@@ -28,7 +30,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb)
         threads_.push_back(std::unique_ptr<EventLoopThread>(t));
         loops_.push_back(t -> stratLoop());
     }
-
+    std::cout << "There are " << numThreads_ << " threads in pool" << std::endl;
     if(numThreads_ == 0 && cb)
     {
         cb(baseloop_);
